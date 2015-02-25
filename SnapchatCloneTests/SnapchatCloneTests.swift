@@ -2,7 +2,7 @@
 //  SnapchatCloneTests.swift
 //  SnapchatCloneTests
 //
-//  Created by Sean on 2/25/15.
+//  Created by NL33 on 2/25/15.
 //  Copyright (c) 2015 NL33. All rights reserved.
 //
 
