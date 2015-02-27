@@ -22,7 +22,7 @@ class ViewController: UIViewController {
                 
                 println("logged in")
                 
-                self.performSegueWithIdentifier("showUsers", sender: self)
+                self.performSegueWithIdentifier("showUsers", sender: self) //segue to userviewcontroller on signin
                 
             } else { //if it does not work to log them in, they we will try and sign them up:
                 
@@ -37,7 +37,7 @@ class ViewController: UIViewController {
                         
                         println("signed up")
                         
-                        self.performSegueWithIdentifier("showUsers", sender: self)
+                        self.performSegueWithIdentifier("showUsers", sender: self) //segue to userviewcontroller on signin
                         
                     } else { //if that is not successful, then we have an error:
                         
@@ -61,7 +61,7 @@ class ViewController: UIViewController {
     
     override func viewDidAppear(animated: Bool) {
         
-        if PFUser.currentUser() != nil {
+        if PFUser.currentUser() != nil { //if there is a current user, then perform segue to user screen:
             
             self.performSegueWithIdentifier("showUsers", sender: self)
             
