@@ -8,9 +8,41 @@
 
 import UIKit
 
-class UserViewController: UITableViewController {
+class UserViewController: UITableViewController, UINavigationControllerDelegate, UIImagePickerControllerDelegate { //the latter two delegates are required for this controller to controll the image picker and pickimage actions below
     
     var userArray: [String] = [] //a user array to save the users based on the code below
+    
+    var activeRecipient = 0  //this is a global variable. It is set with the didSelectRowAtUserPath function below (when the user taps on someone in the table), and then added in to the image to send uploading to parse activity
+    
+    // Update - ! removed after UIImagePickerController
+    
+    func imagePickerController(picker: UIImagePickerController, didFinishPickingImage image: UIImage!, editingInfo: //called when the user has already picked their image
+        [NSObject : AnyObject]!) {
+        println("Image selected")
+        self.dismissViewControllerAnimated(true, completion: nil)
+        
+        // UPLOAD TO PARSE (from saving objects code at parse.com/docs/ios_guide:
+        
+        var imageToSend = PFObject(className:"image")
+        imageToSend["photo"] = PFFile(name: "image.jpg", data: UIImageJPEGRepresentation(image, 0.5))  //this gets the image intself. Compression quality is the extent of image quality--it will be between 0 and 1. The smaller the number the easier to download.  NOTE: we use PFFile, with the data coming from our image. This provides a much bigger limit in terms of photo size than the normal, possibility, which is UIImageJPEGRepresentation...
+        imageToSend["senderUsername"] = PFUser.currentUser().username
+        imageToSend["recipientUsername"] = userArray[activeRecipient]  //activeRecipient is who has been tapped on, set below in the didSelectRowAtUserPath function below
+        imageToSend.save()  //note--this would not tell the user that it actually has been sent.  saveInBackgroundWithBlock, could do that if in the block you put in some kind of alert
+        
+    }
+    
+    @IBAction func pickImage(sender: AnyObject) { //creates a new view controller, sets some values for that, and displays the controller for the user to pick their image
+        
+        var image = UIImagePickerController()
+        image.delegate = self
+        image.sourceType = UIImagePickerControllerSourceType.PhotoLibrary  //this could have said "camera" instead of "PhotoLibrary", but we use PhotLibrary to be able to view with the simulator
+        image.allowsEditing = false
+        
+        self.presentViewController(image, animated: true, completion: nil)
+        
+    }
+    
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -60,6 +92,14 @@ class UserViewController: UITableViewController {
         return cell
     }
     
+    
+    //This is so that when a user taps on another image in the table, thie pickImage function is called
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        
+        activeRecipient = indexPath.row //this sets the activeRecipient variable when user taps on them--telling us who the user wants to send to.
+        
+        pickImage(self)
+    }
     
     /*
     // Override to support conditional editing of the table view.
