@@ -69,7 +69,13 @@
                             <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                             <items>
-                                <navigationItem title="Users" id="M8c-2R-udf"/>
+                                <navigationItem title="SnapChat Users" id="M8c-2R-udf">
+                                    <barButtonItem key="leftBarButtonItem" title="Logout" id="66T-oF-mwU">
+                                        <connections>
+                                            <segue destination="vXZ-lx-hvc" kind="show" identifier="logout" id="Jdx-bu-mUj"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </navigationItem>
                             </items>
                         </navigationBar>
                         <prototypes>

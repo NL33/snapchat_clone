@@ -14,6 +14,8 @@ class UserViewController: UITableViewController, UINavigationControllerDelegate,
     
     var activeRecipient = 0  //this is a global variable. It is set with the didSelectRowAtUserPath function below (when the user taps on someone in the table), and then added in to the image to send uploading to parse activity
     
+    var timer = NSTimer() //relates to app checking for new messages after a set amount of time
+    
     // Update - ! removed after UIImagePickerController
     
     func imagePickerController(picker: UIImagePickerController, didFinishPickingImage image: UIImage!, editingInfo: //called when the user has already picked their image
@@ -56,6 +58,101 @@ class UserViewController: UITableViewController, UINavigationControllerDelegate,
         for user in users {
             
             userArray.append(user.username)
+            
+            tableView.reloadData()  //be sure to refresh the table after the user array is updated each time
+            
+        }
+        
+        timer = NSTimer.scheduledTimerWithTimeInterval(5, target: self, selector: Selector("checkForMessage"), userInfo: nil, repeats: true)  //this says every 5 seconds run the function checkForMessage below
+        
+    }
+    func checkForMessage() {//function to check for message after a period of time per the timer methods above
+        
+        println("checking for message...")
+        
+        var query = PFQuery(className: "image") //checking the image
+        query.whereKey("recipientUsername", equalTo: PFUser.currentUser().username) //find where the recipient user name in parse is equal to the current user name (just checking if there is a new image for that user)
+        var images = query.findObjects()
+        
+        var done = false //
+        
+        for image in images {
+            
+            if done == false {
+                
+                var imageView:PFImageView = PFImageView()  //download the image.
+                
+                // Update - replaced as with as!
+                
+                imageView.file = image["photo"] as PFFile  //set the image to the photo that we have downloaded
+                imageView.loadInBackground({ (photo, error) -> Void in //this is the instruction to download the image..
+                if error == nil {
+                
+                var senderUsername = ""
+                
+                if image["senderUsername"] != nil { //if there is an image, then run the following:
+                
+                // Update - replaced as NSString with as! String
+                
+                senderUsername = image["senderUsername"]! as String
+                
+                } else {
+                
+                senderUsername = "unknown user"
+                
+                }
+            
+                var alert = UIAlertController(title: "You have a message", message: "Message from \(senderUsername)", preferredStyle: UIAlertControllerStyle.Alert)
+                alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: {
+                (action) -> Void in
+                
+                    
+              //The image will be printed on the table view. But we do not want the user to be able to see the table in the background when the image appears. So we change the background to a dark background with a small amount of transparancy
+                var backgroundView = UIImageView(frame: CGRectMake(0, 0, self.view.frame.width, self.view.frame.height))
+                backgroundView.backgroundColor = UIColor.blackColor()  //changes the background to black
+                backgroundView.alpha = 0.8 //adds a bit of transparancy--so background looks more so grayed out
+                backgroundView.tag = 3
+                self.view.addSubview(backgroundView)
+                
+                    //SET THE APPEARANCE OF THE IMAGE:
+                    var displayedImage = UIImageView(frame: CGRectMake(0, 0, self.view.frame.width, self.view.frame.height)) //We create a UIimage and put it on top of our table:
+                  displayedImage.image = photo //set the image to be our image, which is our photo variable
+                  displayedImage.tag = 3
+                  displayedImage.contentMode = UIViewContentMode.ScaleAspectFit  //changes the content mode to aspect fit so it fits the image on the screen in the correct ratio
+                   self.view.addSubview(displayedImage)  //put the image in the view
+               
+                    
+                    //Hide the message after 5 seconds:
+                image.delete()
+                
+                self.timer = NSTimer.scheduledTimerWithTimeInterval(5, target: self, selector: Selector("hideMessage"), userInfo: nil, repeats: false)  //hides message based on the hidemessage below
+                
+                }))
+                
+                self.presentViewController(alert, animated: true, completion: nil)
+                
+                
+                }
+                
+                
+                })
+                
+                done = true
+            }
+            
+        }
+        
+    }
+    
+    func hideMessage() {
+        
+        for subview in self.view.subviews {
+            
+            if subview.tag == 3 {
+                
+                subview.removeFromSuperview()
+                
+            }
             
         }
         
@@ -101,49 +198,14 @@ class UserViewController: UITableViewController, UINavigationControllerDelegate,
         pickImage(self)
     }
     
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(tableView: UITableView!, canEditRowAtIndexPath indexPath: NSIndexPath!) -> Bool {
-    // Return NO if you do not want the specified item to be editable.
-    return true
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {  //this is if the user taps the logout button that is on the view controller, identified as "logout"--and then, per the segue we have set up, takes the user to the signin page
+        
+        if segue.identifier == "logout" {
+            
+            PFUser.logOut()
+            
+        }
+        
     }
-    */
-    
-    /*
-    // Override to support editing the table view.
-    override func tableView(tableView: UITableView!, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath!) {
-    if editingStyle == .Delete {
-    // Delete the row from the data source
-    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-    } else if editingStyle == .Insert {
-    // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }
-    }
-    */
-    
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(tableView: UITableView!, moveRowAtIndexPath fromIndexPath: NSIndexPath!, toIndexPath: NSIndexPath!) {
-    
-    }
-    */
-    
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(tableView: UITableView!, canMoveRowAtIndexPath indexPath: NSIndexPath!) -> Bool {
-    // Return NO if you do not want the item to be re-orderable.
-    return true
-    }
-    */
-    
-    /*
-    // MARK: - Navigation
-    
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue!, sender: AnyObject!) {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-    }
-    */
-    
-}
+ 
+   }
