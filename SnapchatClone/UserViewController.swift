@@ -86,50 +86,54 @@ class UserViewController: UITableViewController, UINavigationControllerDelegate,
                 
                 imageView.file = image["photo"] as PFFile  //set the image to the photo that we have downloaded
                 imageView.loadInBackground({ (photo, error) -> Void in //this is the instruction to download the image..
+              
                 if error == nil {
                 
+                    
+                //CREATE SENDERUSER NAME VARIABLE FOR PURPOSES OF SHOWING THE NAME OF THE PERSON WHO SENT THE MESSAGE WHEN WE GIVE THE USER AN ALERT THEY HAVE A NEW MESSAGE
                 var senderUsername = ""
                 
-                if image["senderUsername"] != nil { //if there is an image, then run the following:
+                if image["senderUsername"] != nil { //if there is an image, then run the below. We set as conditiional to avoid printing "Optional" with the username.
                 
                 // Update - replaced as NSString with as! String
                 
-                senderUsername = image["senderUsername"]! as String
+                senderUsername = image["senderUsername"]! as String  //if there is a user, set to who has sent the message
                 
                 } else {
                 
-                senderUsername = "unknown user"
+                senderUsername = "unknown user" //else, set to unknown user
                 
                 }
-            
-                var alert = UIAlertController(title: "You have a message", message: "Message from \(senderUsername)", preferredStyle: UIAlertControllerStyle.Alert)
+                    
+            //GIVE USER ALERT IF THERE IS A MESSAGE FOR THEM
+                var alert = UIAlertController(title: "You have a message", message: "Message from \(senderUsername)", preferredStyle: UIAlertControllerStyle.Alert)  //create alert, give title, and style. This also tells them who the message is from (senderUsername is the column in Parse)
                 alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: {
                 (action) -> Void in
-                
+             //
                     
               //The image will be printed on the table view. But we do not want the user to be able to see the table in the background when the image appears. So we change the background to a dark background with a small amount of transparancy
                 var backgroundView = UIImageView(frame: CGRectMake(0, 0, self.view.frame.width, self.view.frame.height))
                 backgroundView.backgroundColor = UIColor.blackColor()  //changes the background to black
                 backgroundView.alpha = 0.8 //adds a bit of transparancy--so background looks more so grayed out
-                backgroundView.tag = 3
+                backgroundView.tag = 3  //this sets a tag for the image. 3 is just a random name for the tag. With this, we can below in the hideMessage() function select all images with tag of 3, and delete them.
                 self.view.addSubview(backgroundView)
                 
                     //SET THE APPEARANCE OF THE IMAGE:
                     var displayedImage = UIImageView(frame: CGRectMake(0, 0, self.view.frame.width, self.view.frame.height)) //We create a UIimage and put it on top of our table:
                   displayedImage.image = photo //set the image to be our image, which is our photo variable
-                  displayedImage.tag = 3
+                  displayedImage.tag = 3 //this sets a tag for the image. 3 is just a random name for the tag. With this, we can below in the hideMessage() function select all images with tag of 3, and delete them.
                   displayedImage.contentMode = UIViewContentMode.ScaleAspectFit  //changes the content mode to aspect fit so it fits the image on the screen in the correct ratio
                    self.view.addSubview(displayedImage)  //put the image in the view
                
                     
                     //Hide the message after 5 seconds:
-                image.delete()
+                image.delete()  //this ensures that the image is displayed and then deleted from Parse so not to be shown again.
                 
-                self.timer = NSTimer.scheduledTimerWithTimeInterval(5, target: self, selector: Selector("hideMessage"), userInfo: nil, repeats: false)  //hides message based on the hidemessage below
+                self.timer = NSTimer.scheduledTimerWithTimeInterval(5, target: self, selector: Selector("hideMessage"), userInfo: nil, repeats: false)  //hides message after 5 seconds, based on the hidemessage function below
                 
                 }))
                 
-                self.presentViewController(alert, animated: true, completion: nil)
+                self.presentViewController(alert, animated: true, completion: nil) //this is to show the alert created above
                 
                 
                 }
@@ -144,13 +148,13 @@ class UserViewController: UITableViewController, UINavigationControllerDelegate,
         
     }
     
-    func hideMessage() {
+    func hideMessage() { //remove the image views that we have created
         
-        for subview in self.view.subviews {
+        for subview in self.view.subviews {//loops through the subviews
             
-            if subview.tag == 3 {
+            if subview.tag == 3 {//this is the tag set above
                 
-                subview.removeFromSuperview()
+                subview.removeFromSuperview() //remove from Superview--Superview is the whole view
                 
             }
             
